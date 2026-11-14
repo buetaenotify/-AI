@@ -37,6 +37,31 @@
     const f = document.createElement('iframe');
     f.src = u; f.allow = 'clipboard-write; clipboard-read'; document.body.appendChild(f);
   }
+  // ---- ของที่แชร์เข้ามา: อ่านจากที่ service worker พักไว้ แล้วส่งให้แอปข้างในเมื่อมันพร้อม
+  let pending = null, readySrc = null;
+  function deliver() {
+    if (!pending || !readySrc) return;
+    readySrc.win.postMessage(Object.assign({ __pp: 'share' }, pending), readySrc.origin);
+    pending = null; history.replaceState(null, '', './index.html');
+  }
+  addEventListener('message', e => {
+    if (!e.data || e.data.__pp !== 'ready') return;
+    let host = ''; try { host = new URL(e.origin).hostname; } catch (x) {}
+    if (!/\.googleusercontent\.com$/.test(host)) return; // รับเฉพาะหน้า Apps Script
+    readySrc = { win: e.source, origin: e.origin }; deliver();
+  });
+  (async () => {
+    if (!('caches' in window)) return;
+    try {
+      const cache = await caches.open('share'), meta = await cache.match('meta');
+      if (!meta) return;
+      const d = await meta.json(); d.images = [];
+      for (let i = 0; i < d.n; i++) { const r = await cache.match('img' + i); if (r) d.images.push(await r.blob()); }
+      await caches.delete('share');
+      pending = d; deliver();
+    } catch (x) {}
+  })();
+
   const saved = localStorage.getItem(K);
   if (saved && location.hash !== '#reset') open(saved); else $('setup').hidden = false;
   $('save').onclick = () => {
