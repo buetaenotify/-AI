@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AI สร้างพรอมต์ขายของ</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#6d28d9">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="พรอมต์ขายของ">
+<meta name="robots" content="noindex">
+<style>
+  html, body { margin:0; height:100%; background:#0b1220; font-family:system-ui, sans-serif; }
+  iframe { position:fixed; inset:0; width:100%; height:100%; border:0; background:#f1f5f9; }
+  #setup { max-width:420px; margin:0 auto; padding:48px 20px; color:#f1f5f9; text-align:center; }
+  #setup img { width:88px; border-radius:22px; }
+  input { width:100%; box-sizing:border-box; padding:14px; border-radius:14px; border:1px solid #334155; background:#131c2e; color:#fff; font-size:15px; margin:14px 0; }
+  button { width:100%; padding:15px; border:0; border-radius:16px; font-weight:700; font-size:16px; color:#fff; background:linear-gradient(135deg,#6d28d9,#db2777); }
+  p { color:#94a3b8; font-size:14px; line-height:1.6; }
+  #reset { position:fixed; right:8px; bottom:8px; z-index:2; opacity:.0; width:44px; height:44px; }
+</style>
+</head>
+<body>
+<div id="setup" hidden>
+  <img src="icon-192.png" alt="">
+  <h2>ตั้งค่าครั้งแรก</h2>
+  <p>วางลิงก์ระบบแบบเต็ม (ลงท้าย <b>/exec?key=...</b>)<br>ลิงก์จะถูกเก็บไว้ในเครื่องนี้เท่านั้น</p>
+  <input id="url" placeholder="https://script.google.com/macros/s/.../exec?key=..." inputmode="url" autocapitalize="off">
+  <button id="save">บันทึกและเปิดแอป</button>
+  <p id="msg"></p>
+</div>
+<script>
+  const K = 'promptAppUrl', $ = id => document.getElementById(id);
+  function open(u) {
+    const f = document.createElement('iframe');
+    f.src = u; f.allow = 'clipboard-write; clipboard-read'; document.body.appendChild(f);
+  }
+  const saved = localStorage.getItem(K);
+  if (saved && location.hash !== '#reset') open(saved); else $('setup').hidden = false;
+  $('save').onclick = () => {
+    const u = $('url').value.trim();
+    if (!/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec\?key=.+/.test(u)) { $('msg').textContent = 'ลิงก์ไม่ถูกต้อง ต้องเป็นลิงก์ /exec?key=...'; return; }
+    localStorage.setItem(K, u); location.hash = ''; location.reload();
+  };
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>
